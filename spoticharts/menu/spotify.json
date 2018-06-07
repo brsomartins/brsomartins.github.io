@@ -6,22 +6,22 @@
             "children": [
                 {
                     "name": "Global-D",
-                    "address": "../treemap/index.html?regiao=global&tipo=daily",
+                    "address": "./treemap/index.html?regiao=global&tipo=daily",
                     "note": "Visualização em Treemap do Top 200 Global Diário"
                 },
                 {
                     "name": "Global-S",
-                    "address": "../treemap/index.html?regiao=global&tipo=weekly",
+                    "address": "./treemap/index.html?regiao=global&tipo=weekly",
                     "note": "Visualização em Treemap do Top 200 Global Semanal"
                 },
                 {
                     "name": "Brasil-D",
-                    "address": "../treemap/index.html?regiao=br&tipo=daily",
+                    "address": "./treemap/index.html?regiao=br&tipo=daily",
                     "note": "Visualização em Treemap do Top 200 Brasil Diário"
                 },
                 {
                     "name": "Brasil-S",
-                    "address": "../treemap/index.html?regiao=br&tipo=weekly",
+                    "address": "./treemap/index.html?regiao=br&tipo=weekly",
                     "note": "Visualização em Treemap do Top 200 Brasil Semanal"
                 }
             ]
@@ -31,22 +31,22 @@
             "children": [
                 {
                     "name": "Global-D",
-                    "address": "../bubble/index.html?regiao=global&tipo=daily",
+                    "address": "./bubble/index.html?regiao=global&tipo=daily",
                     "note": "Visualização em Bubble Chart do Top 200 Global Diário"
                 },
                 {
                     "name": "Global-S",
-                    "address": "../bubble/index.html?regiao=global&tipo=weekly",
+                    "address": "./bubble/index.html?regiao=global&tipo=weekly",
                     "note": "Visualização em Bubble Chart do Top 200 Global Semanal"
                 },
                 {
                     "name": "Brasil-D",
-                    "address": "../bubble/index.html?regiao=br&tipo=daily",
+                    "address": "./bubble/index.html?regiao=br&tipo=daily",
                     "note": "Visualização em Bubble Chart do Top 200 Brasil Diário"
                 },
                 {
                     "name": "Brasil-S",
-                    "address": "../bubble/index.html?regiao=br&tipo=weekly",
+                    "address": "./bubble/index.html?regiao=br&tipo=weekly",
                     "note": "Visualização em Bubble Chart do Top 200 Brasil Semanal"
                 }
             ]
@@ -56,22 +56,22 @@
             "children": [
                 {
                     "name": "Global-D",
-                    "address": "../dendro/index.html?regiao=global&tipo=daily",
+                    "address": "./dendro/index.html?regiao=global&tipo=daily",
                     "note": "Visualização em Dendrograma do Top 200 Global Diário"
                 },
                 {
                     "name": "Global-S",
-                    "address": "../dendro/index.html?regiao=global&tipo=weekly",
+                    "address": "./dendro/index.html?regiao=global&tipo=weekly",
                     "note": "Visualização em Dendrograma do Top 200 Global Semanal"
                 },
                 {
                     "name": "Brasil-D",
-                    "address": "../dendro/index.html?regiao=br&tipo=daily",
+                    "address": "./dendro/index.html?regiao=br&tipo=daily",
                     "note": "Visualização em Dendrograma do Top 200 Brasil Diário"
                 },
                 {
                     "name": "Brasil-S",
-                    "address": "../dendro/index.html?regiao=br&tipo=weekly",
+                    "address": "./dendro/index.html?regiao=br&tipo=weekly",
                     "note": "Visualização em Dendrograma do Top 200 Brasil Semanal"
                 }
             ]
@@ -81,22 +81,22 @@
             "children": [
                 {
                     "name": "Global-D",
-                    "address": "../circle/index.html?regiao=global&tipo=daily",
+                    "address": "./circle/index.html?regiao=global&tipo=daily",
                     "note": "Visualização em Circle Packing do Top 200 Global Diário"
                 },
                 {
                     "name": "Global-S",
-                    "address": "../circle/index.html?regiao=global&tipo=weekly",
+                    "address": "./circle/index.html?regiao=global&tipo=weekly",
                     "note": "Visualização em Circle Packing do Top 200 Global Semanal"
                 },
                 {
                     "name": "Brasil-D",
-                    "address": "../circle/index.html?regiao=br&tipo=daily",
+                    "address": "./circle/index.html?regiao=br&tipo=daily",
                     "note": "Visualização em Circle Packing do Top 200 Brasil Diário"
                 },
                 {
                     "name": "Brasil-S",
-                    "address": "../circle/index.html?regiao=br&tipo=weekly",
+                    "address": "./circle/index.html?regiao=br&tipo=weekly",
                     "note": "Visualização em Circle Packing do Top 200 Brasil Semanal"
                 }
             ]
