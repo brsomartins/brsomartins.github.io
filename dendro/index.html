@@ -1,0 +1,179 @@
+<!-- Baseado em https://bl.ocks.org/mbostock/4063570 -->
+
+<!DOCTYPE html>
+<style>
+    body {
+        background-color: #000;
+        fill: #888;
+    }
+
+    #titulo {
+        font-family: sans-serif;
+        color: #888;
+        text-align: center;
+        margin-top: 30px;
+    }
+
+    .botao {
+        background-color: #000;
+        border: 2px solid #888;
+        color: #888;
+        padding: 16px 32px;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 16px;
+        margin: 4px 2px;
+        -webkit-transition-duration: 0.3s;
+        transition-duration: 0.3s;
+        cursor: pointer;
+        position: absolute;
+        top: 15px;
+        left: 15px;
+    }
+
+    .botao:hover {
+        background-color: #888;
+        color: #000;
+    }
+
+    svg {
+        background-color: #000;
+        margin: 0 auto;
+        display: block;
+    }
+
+    .node circle {
+        fill: #888;
+    }
+
+    .node text {
+        font: 10px sans-serif;
+    }
+
+    .node--internal circle {
+        fill: #888;
+    }
+
+    .node--internal text {
+        text-shadow: 0 1px 0 #000, 0 -1px 0 #000, 1px 0 0 #000, -1px 0 0 #000;
+    }
+
+    .link {
+        fill: none;
+        stroke: #888;
+        stroke-opacity: 0.4;
+        stroke-width: 1.5px;
+    }
+
+    a.node--leaf {
+        fill: #888;
+        -webkit-transition-duration: 0.3s;
+        transition-duration: 0.3s;
+        cursor: pointer;
+    }
+
+    a.node--leaf:hover {
+        fill: #fff;
+    }
+</style>
+<script src="../scripts/d3.v4.min.js"></script>
+<script src="../scripts/papaparse.min.js"></script>
+<script src="../scripts/dados.js"></script>
+<title>Visualização em Dendrograma</title>
+<h1 id="titulo">Visualização em Dendrograma</h1>
+<div style="margin: 0 auto;">
+    <svg width="1200" height="3600"></svg>
+</div>
+<button class="botao" onclick="window.close();">Fechar</button>
+<script>
+    var regiao = obtemParamUrl()["regiao"];
+    var tipo = obtemParamUrl()["tipo"];
+
+    function obtemRegiao(regiao) {
+        if (regiao == "global" || regiao === undefined)
+            return " Global";
+        else if (regiao == "br")
+            return " Brasil";
+        else
+            return " " + regiao.toUpperCase();
+    }
+
+    function obtemTipo(tipo) {
+        if (tipo == "daily" || tipo === undefined)
+            return " Diário";
+        else if (tipo == "weekly")
+            return " Semanal";
+        else
+            return "";
+    }
+
+    d3.select("[id='titulo']")
+        .text("Visualização em Dendrograma do Top 200" + obtemRegiao(regiao) + obtemTipo(tipo));
+
+    dados(regiao, tipo).then(function (resultado) {
+        var svg = d3.select("svg"),
+            width = +svg.attr("width"),
+            height = +svg.attr("height"),
+            g = svg.append("g").attr("transform", "translate(40,0)");
+
+        var locale = d3.formatLocale({
+            "decimal": ",",
+            "thousands": ".",
+            "grouping": [3],
+            "currency": ["R$ ", ""]
+        });
+
+        var format = locale.format(",d");
+
+        var tree = d3.cluster()
+            .size([height, width - 160]);
+
+        var stratify = d3.stratify()
+            .parentId(function (d) { return d.id.substring(0, d.id.lastIndexOf("/")); });
+
+        var d = d3.csvParse(resultado, function (d) {
+            d.size = +d.size;
+            d.id = d.path;
+            return d;
+        });
+
+        var root = stratify(d)
+            .sort(function (a, b) { return (a.height - b.height) || a.id.localeCompare(b.id); });
+
+        tree(root);
+
+        var link = g.selectAll(".link")
+            .data(root.descendants().slice(1))
+            .enter().append("path")
+            .attr("class", "link")
+            .attr("d", function (d) {
+                return "M" + d.y + "," + d.x
+                    + "C" + (d.parent.y + 100) + "," + d.x
+                    + " " + (d.parent.y + 100) + "," + d.parent.x
+                    + " " + d.parent.y + "," + d.parent.x;
+            });
+
+        var node = g.selectAll(".node")
+            .data(root.descendants())
+            .enter().append("a")
+            .attr("class", function (d) { return "node" + (d.children ? " node--internal" : " node--leaf"); })
+            .attr("transform", function (d) { return "translate(" + d.y + "," + d.x + ")"; });
+
+        g.selectAll(".node--leaf")
+            .attr("target", "_blank")
+            .attr("xlink:href", function (d) { return d.data.url; });
+
+        node.append("circle")
+            .attr("r", 2.5);
+
+        node.append("text")
+            .attr("dy", 3)
+            .attr("x", function (d) { return d.children ? -8 : 8; })
+            .style("text-anchor", function (d) { return d.children ? "end" : "start"; })
+            .text(function (d) { return d.children ? (d.id.substring(d.id.lastIndexOf("/") + 1)) : (d.data.position + ". " + d.id.substring(d.id.lastIndexOf("/") + 1)); });
+
+        node.append("title")
+            .text(function (d) { return d.id.substring(d.id.indexOf("/") + 1, d.id.lastIndexOf("/")) + "\n" + d.id.substring(d.id.lastIndexOf("/") + 1) + "\n" + format(d.data.size) + " reproduções" + "\n" + d.data.position + "º lugar"; });
+    });
+</script>

@@ -1,0 +1,174 @@
+<!-- Baseado em https://bl.ocks.org/mbostock/4063269 -->
+
+<!DOCTYPE html>
+<style>
+    body {
+        background-color: #000;
+    }
+
+    #titulo {
+        font-family: sans-serif;
+        color: #888;
+        text-align: center;
+        margin-top: 30px;
+    }
+
+    .botao {
+        background-color: #000;
+        border: 2px solid #888;
+        color: #888;
+        padding: 16px 32px;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 16px;
+        margin: 4px 2px;
+        -webkit-transition-duration: 0.3s;
+        transition-duration: 0.3s;
+        cursor: pointer;
+        position: absolute;
+        top: 15px;
+        left: 15px;
+    }
+
+    .botao:hover {
+        background-color: #888;
+        color: #000;
+    }
+
+    svg {
+        font: 10px sans-serif;
+        text-anchor: middle;
+        background-color: #000;
+        margin: 0 auto;
+        display: block;
+    }
+
+    a {
+        opacity: 0.8;
+        -webkit-transition-duration: 0.3s;
+        transition-duration: 0.3s;
+        cursor: pointer;
+    }
+
+    a:hover {
+        opacity: 1;
+    }
+
+    a:hover circle {
+        stroke: #000;
+        stroke-width: 4px;
+        -webkit-transition-duration: 0.3s;
+        transition-duration: 0.3s;
+    }
+
+    tspan {
+        dominant-baseline: middle;
+    }
+</style>
+<script src="../scripts/d3.v4.min.js"></script>
+<script src="../scripts/papaparse.min.js"></script>
+<script src="../scripts/dados.js"></script>
+<title>Visualização em Bubble Chart</title>
+<h1 id="titulo">Visualização em Bubble Chart</h1>
+<div style="margin: 0 auto;">
+    <svg width="1200" height="1200"></svg>
+</div>
+<button class="botao" onclick="window.close();">Fechar</button>
+<script>
+    var regiao = obtemParamUrl()["regiao"];
+    var tipo = obtemParamUrl()["tipo"];
+
+    function obtemRegiao(regiao) {
+        if (regiao == "global" || regiao === undefined)
+            return " Global";
+        else if (regiao == "br")
+            return " Brasil";
+        else
+            return " " + regiao.toUpperCase();
+    }
+
+    function obtemTipo(tipo) {
+        if (tipo == "daily" || tipo === undefined)
+            return " Diário";
+        else if (tipo == "weekly")
+            return " Semanal";
+        else
+            return "";
+    }
+
+    d3.select("[id='titulo']")
+        .text("Visualização em Bubble Chart do Top 200" + obtemRegiao(regiao) + obtemTipo(tipo));
+
+    dados(regiao, tipo).then(function (resultado) {
+        var svg = d3.select("svg"),
+            width = +svg.attr("width"),
+            height = +svg.attr("height");
+
+        var color = d3.scaleOrdinal(d3.schemeCategory20c);
+
+        var locale = d3.formatLocale({
+            "decimal": ",",
+            "thousands": ".",
+            "grouping": [3],
+            "currency": ["R$ ", ""]
+        });
+
+        var format = locale.format(",d");
+
+        var pack = d3.pack()
+            .size([width, height])
+            .padding(1.5);
+
+        var d = d3.csvParse(resultado, function (d) {
+            d.size = +d.size;
+            return d;
+        });
+
+        var root = d3.hierarchy({ children: d })
+            .sum(function (d) { return d.size; })
+            .each(function (d) {
+                if (path = d.data.path) {
+                    var path, i = path.lastIndexOf("/");
+                    d.path = path;
+                    d.package = path.slice(0, i);
+                    d.class = path.slice(i + 1);
+                }
+            });
+
+        var node = svg.selectAll(".node")
+            .data(pack(root).leaves())
+            .enter().append("a")
+            .attr("class", "node")
+            .attr("target", "_blank")
+            .attr("xlink:href", function (d) { return d.data.url; })
+            .attr("transform", function (d) { return "translate(" + d.x + "," + d.y + ")"; });
+
+        node.append("circle")
+            .attr("id", function (d) { return d.path; })
+            .attr("r", function (d) { return d.r; })
+            .style("fill", function (d) { return color(d.package); });
+
+        node.append("clipPath")
+            .attr("id", function (d) { return "clip-" + d.path; })
+            .append("use")
+            .attr("xlink:href", function (d) { return "#" + d.path; });
+
+        function reticencias(d) {
+            if ((d.data.position + ". " + d.class).length > d.r / 3.5)
+                return "...";
+            else
+                return "";
+        }
+
+        node.append("text")
+            .attr("clip-path", function (d) { return "url(#clip-" + d.path + ")"; })
+            .selectAll("tspan")
+            .data(function (d) { return (d.data.position + ". " + d.class).substring(0, d.r / 3.5) + reticencias(d); })
+            .enter().append("tspan")
+            .text(function (d) { return d; });
+
+        node.append("title")
+            .text(function (d) { return d.path.substring(d.path.indexOf("/") + 1, d.path.lastIndexOf("/")) + "\n" + d.path.substring(d.path.lastIndexOf("/") + 1) + "\n" + format(d.value) + " reproduções" + "\n" + d.data.position + "º lugar"; });
+    });
+</script>
