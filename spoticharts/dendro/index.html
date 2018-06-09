@@ -173,7 +173,9 @@
             .style("text-anchor", function (d) { return d.children ? "end" : "start"; })
             .text(function (d) { return d.children ? (d.id.substring(d.id.lastIndexOf("/") + 1)) : (d.data.position + ". " + d.id.substring(d.id.lastIndexOf("/") + 1)); });
 
-        node.append("title")
+        // node.append("title")
+        g.selectAll(".node--leaf")
+            .append("title")
             .text(function (d) { return d.id.substring(d.id.indexOf("/") + 1, d.id.lastIndexOf("/")) + "\n" + d.id.substring(d.id.lastIndexOf("/") + 1) + "\n" + format(d.data.size) + " reproduções" + "\n" + d.data.position + "º lugar"; });
     });
 </script>
