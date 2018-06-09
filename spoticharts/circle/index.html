@@ -1,3 +1,5 @@
+<!-- Baseado em https://bl.ocks.org/mbostock/ca5b03a33affa4160321 -->
+
 <!DOCTYPE html>
 <style>
     body {
@@ -36,25 +38,35 @@
 
     svg {
         font: 10px sans-serif;
+        text-anchor: middle;
         background-color: #000;
         margin: 0 auto;
         display: block;
     }
 
-    circle {
-        fill: rgb(31, 119, 180);
-        fill-opacity: 0.2;
-        stroke: rgb(31, 119, 180);
-        stroke-width: 1px;
+    a {
+        opacity: 0.8;
+        -webkit-transition-duration: 0.3s;
+        transition-duration: 0.3s;
     }
 
-    .leaf circle {
-        fill: #fff;
-        fill-opacity: 0.7;
+    a.node--leaf {
+        cursor: pointer;
     }
 
-    text {
-        text-anchor: middle;
+    a:hover {
+        opacity: 1;
+    }
+
+    a:hover circle {
+        stroke: #000;
+        stroke-width: 2px;
+        -webkit-transition-duration: 0.3s;
+        transition-duration: 0.3s;
+    }
+
+    tspan {
+        dominant-baseline: middle;
     }
 </style>
 <script src="../scripts/d3.v4.min.js"></script>
@@ -63,7 +75,9 @@
 <title>Visualização em Circle Packing</title>
 <h1 id="titulo">Visualização em Circle Packing</h1>
 <div style="margin: 0 auto;">
-    <svg width="1200" height="1200"></svg>
+    <svg width="1200" height="1200">
+        <g transform="translate(1,1)"></g>
+    </svg>
 </div>
 <button class="botao" onclick="window.close();">Fechar</button>
 <script>
@@ -93,61 +107,84 @@
 
     dados(regiao, tipo).then(function (resultado) {
         var svg = d3.select("svg"),
-            diameter = +svg.attr("width"),
-            g = svg.append("g").attr("transform", "translate(2,2)"),
-            format = d3.format(",d");
+            width = +svg.attr("width"),
+            height = +svg.attr("height");
+
+        var color = d3.scaleSequential(d3.interpolateMagma)
+            .domain([-4, 4]);
+
+        var locale = d3.formatLocale({
+            "decimal": ",",
+            "thousands": ".",
+            "grouping": [3],
+            "currency": ["R$ ", ""]
+        });
+
+        var format = locale.format(",d");
+
+        var stratify = d3.stratify()
+            .id(function (d) { return d.path; })
+            .parentId(function (d) { return d.path.substring(0, d.path.lastIndexOf("/")); });
 
         var pack = d3.pack()
-            .size([diameter - 4, diameter - 4]);
+            .size([width - 2, height - 2])
+            .padding(3);
 
         var d = d3.csvParse(resultado, function (d) {
             d.size = +d.size;
             return d;
         });
 
-        var root = d3.hierarchy({ children: d })
+        var root = stratify(d)
             .sum(function (d) { return d.size; })
-            .sort(function (a, b) { return b.value - a.value; })
-            .each(function (d) {
-                if (path = d.data.path) {
-                    var path, i = path.lastIndexOf("/");
-                    d.path = path;
-                    d.package = path.slice(0, i);
-                    d.class = path.slice(i + 1);
-                }
-            });
+            .sort(function (a, b) { return b.value - a.value; });
 
-        var node = g.selectAll(".node")
-            .data(pack(root).leaves())
-            .enter().append("g")
-            .attr("class", function (d) { return d.children ? "node" : "leaf node"; })
-            .attr("transform", function (d) { return "translate(" + d.x + "," + d.y + ")"; });
+        pack(root);
 
-        // node.append("title")
-        //     .text(function (d) { return d.data.name + "\n" + format(d.value); });
+        var node = svg.select("g")
+            .selectAll("g")
+            .data(root.descendants())
+            .enter().append("a")
+            .attr("transform", function (d) { return "translate(" + d.x + "," + d.y + ")"; })
+            .attr("class", function (d) { return "node" + (!d.children ? " node--leaf" : d.depth ? "" : " node--root"); })
+            .each(function (d) { d.node = this; });
 
-        node.append("title")
-            .text(function (d) { return d.path.substring(d.path.indexOf("/") + 1, d.path.lastIndexOf("/")) + "\n" + d.path.substring(d.path.lastIndexOf("/") + 1) + "\n" + format(d.value) + " reproduções" + "\n" + d.data.position + "º lugar"; });
+        svg.selectAll(".node--leaf")
+            .attr("target", "_blank")
+            .attr("xlink:href", function (d) { return d.data.url; }
+            );
 
         node.append("circle")
-            .attr("r", function (d) { return d.r; });
+            .attr("id", function (d) { return "node-" + d.id; })
+            .attr("r", function (d) { return d.r; })
+            .style("fill", function (d) { return color(d.depth); });
 
-        // node.filter(function (d) { return !d.children; }).append("text")
-        //     .attr("dy", "0.3em")
-        // .text(function (d) { return d.data.name.substring(0, d.r / 3); });
+        var leaf = node.filter(function (d) { return !d.children; });
+
+        leaf.append("clipPath")
+            .attr("id", function (d) { return "clip-" + d.path; })
+            .append("use")
+            .attr("xlink:href", function (d) { return "#node-" + d.path + ""; });
 
         function reticencias(d) {
-            if ((d.data.position + ". " + d.class).length > d.r / 3.5)
+            console.log(d);
+            if ((d.data.position + ". " + d.id.substring(d.id.lastIndexOf("/") + 1)).length > d.r / 3.5)
                 return "...";
             else
                 return "";
         }
 
-        node.append("text")
+        leaf.append("text")
             .attr("clip-path", function (d) { return "url(#clip-" + d.path + ")"; })
             .selectAll("tspan")
-            .data(function (d) { return (d.data.position + ". " + d.class).substring(0, d.r / 3.5) + reticencias(d); })
+            .data(function (d) { return (d.data.position + ". " + d.id.substring(d.id.lastIndexOf("/") + 1)).substring(0, d.r / 3.5) + reticencias(d); })
             .enter().append("tspan")
             .text(function (d) { return d; });
+
+        node.append("title")
+            // .text(function (d) { return d.path + "\n" + format(d.value); });
+            .text(function (d) {
+                return (d.id.substring(d.id.indexOf("/") + 1, d.id.lastIndexOf("/")) === "/" ? "" : d.id.substring(d.id.indexOf("/") + 1, d.id.lastIndexOf("/"))) + "\n" + d.id.substring(d.id.lastIndexOf("/") + 1) + "\n" + format(d.value) + " reproduções" + (d.data.position ? ("\n" + d.data.position + "º lugar") : "");
+            });
     });
 </script>
