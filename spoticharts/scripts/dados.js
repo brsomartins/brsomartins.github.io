@@ -7,7 +7,8 @@ function dados(regiao = "global", tipo = "daily") {
             if (requisicao.readyState === 4 && requisicao.status === 200) {
                 var tipoConteudo = requisicao.getResponseHeader('Content-Type');
                 if (tipoConteudo.indexOf("text") !== 1) {
-                    var dados = Papa.parse(requisicao.responseText, { header: true });
+                    var stringCsv = requisicao.responseText.substring(requisicao.responseText.indexOf("\n") + 1);
+                    var dados = Papa.parse(stringCsv, { header: true });
                     dadosConvertidos = converte(dados);
                     resolve(dadosConvertidos);
                 } else {
@@ -18,8 +19,8 @@ function dados(regiao = "global", tipo = "daily") {
     });
 }
 
-function converte(dadosy) {
-    var linhas = dadosy['data'];
+function converte(dados) {
+    var linhas = dados['data'];
 
     var saidaCsv = "";
     saidaCsv += "size,path,position,url";
